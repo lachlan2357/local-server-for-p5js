@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"module": "Node16",
+		"skipLibCheck": false,
+
+		"checkJs": true,
+		"strict": true
+	},
+	"include": ["./src/**/*.js", "./src/types/**/*.d.ts"]
+}
