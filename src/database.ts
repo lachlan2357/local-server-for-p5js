@@ -2,6 +2,7 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { Nullable } from "./utils.js";
 import { P5APIResponse, P5File, get_sketch } from "./api.js";
+import { Request, Response } from "express";
 
 const db = await open({ driver: sqlite3.Database, filename: "./database.db" });
 db.on("error", console.error);
@@ -41,6 +42,17 @@ export async function init_tables() {
 		PRIMARY KEY (username, sketch_id, file_name),
 		FOREIGN KEY (username, sketch_id) REFERENCES Sketches (username, sketch_id)
 	);`);
+}
+
+export async function send_file(req: Request, res: Response) {
+	const { username, sketch_id, file_path } = req.params;
+	if (username === undefined || sketch_id === undefined) res.status(404).send("Could not fetch the file.");
+
+	await ensure_exists(username, sketch_id);
+	const file_contents = await get_file(username, sketch_id, file_path ?? "index.html");
+	
+	if (file_contents === undefined) res.status(404).send("File has not been cached.");
+	else res.send(file_contents);
 }
 
 export async function get_file(username: string, sketch_id: string, file_path: string) {

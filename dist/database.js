@@ -24,6 +24,17 @@ export async function init_tables() {
 		FOREIGN KEY (username, sketch_id) REFERENCES Sketches (username, sketch_id)
 	);`);
 }
+export async function send_file(req, res) {
+    const { username, sketch_id, file_path } = req.params;
+    if (username === undefined || sketch_id === undefined)
+        res.status(404).send("Could not fetch the file.");
+    await ensure_exists(username, sketch_id);
+    const file_contents = await get_file(username, sketch_id, file_path ?? "index.html");
+    if (file_contents === undefined)
+        res.status(404).send("File has not been cached.");
+    else
+        res.send(file_contents);
+}
 export async function get_file(username, sketch_id, file_path) {
     const result = await db.get("SELECT * FROM Files WHERE username = ? AND sketch_id = ? AND file_name = ?;", username, sketch_id, file_path);
     if (result === undefined)
