@@ -53,7 +53,6 @@ export async function get_file(username: string, sketch_id: string, file_path: s
 
 export async function ensure_exists(username: string, sketch_id: string) {
 	const result: SketchRow | undefined = await db.get("SELECT * FROM Sketches WHERE username = ? AND sketch_id = ?;", username, sketch_id);
-	console.log(username, sketch_id);
 
 	if (result !== undefined) return;
 	await db.run("INSERT INTO Sketches (username, sketch_id) VALUES (?, ?);", username, sketch_id);
@@ -95,5 +94,7 @@ async function cache_sketch(username: string, sketch_id: string, data: P5APIResp
 
 		const statement = await db.prepare("INSERT INTO Files (username, sketch_id, file_name, file_contents) VALUES (?, ?, ?, ?);", username, sketch_id, path, file.content);
 		await statement.run();
+
+		console.log(`cached file ${path}`);
 	}
 }
