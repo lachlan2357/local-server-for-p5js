@@ -1,23 +1,22 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
-import { Nullable } from "./utils.js";
 import { P5APIResponse, P5File, get_sketch } from "./api.js";
 import { Request, Response } from "express";
-import path from "path";
 
 const db = await open({ driver: sqlite3.Database, filename: "./database.db" });
 db.on("error", console.error);
 
 interface SketchRow {
-	username: string
-	sketch_id: string
+	username: string;
+	sketch_id: string;
+	name: string;
 }
 
 interface FileRow {
-	username: string
-	sketch_id: string,
-	file_type: "html" | "css" | "js",
-	file_contents: string
+	username: string;
+	sketch_id: string;
+	file_type: "html" | "css" | "js";
+	file_contents: string;
 }
 
 export async function init_tables() {
@@ -30,6 +29,7 @@ export async function init_tables() {
 	await db.exec(`CREATE TABLE IF NOT EXISTS Sketches (
 		username VARCHAR NOT NULL,
 		sketch_id VARCHAR NOT NULL,
+		name VARCHAR NOT NULL,
 
 		PRIMARY KEY (username, sketch_id)
 	);`);
@@ -78,7 +78,7 @@ export async function ensure_exists(username: string, sketch_id: string) {
 	const result: SketchRow | undefined = await db.get("SELECT * FROM Sketches WHERE username = ? AND sketch_id = ?;", username, sketch_id);
 
 	if (result !== undefined) return;
-	await db.run("INSERT INTO Sketches (username, sketch_id) VALUES (?, ?);", username, sketch_id);
+	await db.run("INSERT INTO Sketches (username, sketch_id, name) VALUES (?, ?, ?);", username, sketch_id, "unknown-sketch");
 
 	const data = await get_sketch(username, sketch_id);
 	await cache_sketch(username, sketch_id, data);
@@ -88,6 +88,8 @@ async function cache_sketch(username: string, sketch_id: string, data: P5APIResp
 	console.log("caching sketch ...");
 	const entity_map = new Map<string, P5File>();
 	const parent_tree = new Map<string, string>();
+
+	await db.run("UPDATE Sketches SET name = ? WHERE username = ? AND sketch_id = ?;", data.name, username, sketch_id);
 
 	for (const file of data.files) {
 		const id = file.id;

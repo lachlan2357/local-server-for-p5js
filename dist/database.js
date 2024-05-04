@@ -11,6 +11,7 @@ export async function init_tables() {
     await db.exec(`CREATE TABLE IF NOT EXISTS Sketches (
 		username VARCHAR NOT NULL,
 		sketch_id VARCHAR NOT NULL,
+		name VARCHAR NOT NULL,
 
 		PRIMARY KEY (username, sketch_id)
 	);`);
@@ -57,7 +58,7 @@ export async function ensure_exists(username, sketch_id) {
     const result = await db.get("SELECT * FROM Sketches WHERE username = ? AND sketch_id = ?;", username, sketch_id);
     if (result !== undefined)
         return;
-    await db.run("INSERT INTO Sketches (username, sketch_id) VALUES (?, ?);", username, sketch_id);
+    await db.run("INSERT INTO Sketches (username, sketch_id, name) VALUES (?, ?, ?);", username, sketch_id, "unknown-sketch");
     const data = await get_sketch(username, sketch_id);
     await cache_sketch(username, sketch_id, data);
 }
@@ -65,6 +66,7 @@ async function cache_sketch(username, sketch_id, data) {
     console.log("caching sketch ...");
     const entity_map = new Map();
     const parent_tree = new Map();
+    await db.run("UPDATE Sketches SET name = ? WHERE username = ? AND sketch_id = ?;", data.name, username, sketch_id);
     for (const file of data.files) {
         const id = file.id;
         entity_map.set(id, file);

@@ -32,13 +32,46 @@ function getElement(id, tag_name) {
  * @param {string} sketch_id The sketch ID.
  */
 function goToSketch(username, sketch_id) {
-	const path = `${username}/sketches/${sketch_id}/index.html`;
+	const path = getSketchLocalUrl(username, sketch_id);
 	location.pathname = path;
+}
+
+/**
+ * Retrieve the URL to a sketch hosted on `editor.p5js.org`.
+ * 
+ * @param {string} username The sketch author's username.
+ * @param {string} sketch_id The sketch ID.
+ * @returns The URL to the hosted sketch.
+ */
+function getSketchUrl(username, sketch_id) {
+	return `https://editor.p5js.org/${username}/sketches/${sketch_id}`;
+}
+
+/**
+ * Retrieve the URL to a sketch hosted locally.
+ * 
+ * @param {string} username The sketch author's username.
+ * @param {string} sketch_id The sketch ID.
+ * @returns The URL to the sketch hosted locally.
+ */
+function getSketchLocalUrl(username, sketch_id) {
+	return `${username}/sketches/${sketch_id}/index.html`;
+}
+
+/**
+ * Retrieve the URL to an authors page on `editor.p5js.org`.
+ * 
+ * @param {string} username The sketch author's username.
+ * @returns The URL to the hosted author's page.
+ */
+function getAuthorUrl(username) {
+	return `${username}/sketches`;
 }
 
 // DOM Elements.
 const cache_details = getElement("cache-details", "form");
 const cache_url = getElement("cache-url", "form");
+const cached_sketches_parent = getElement("cached-sketches", "div");
 
 const username_input = getElement("username", "input");
 const sketch_id_input = getElement("sketch-id", "input");
@@ -82,3 +115,63 @@ cache_url.addEventListener("submit", e => {
 	const sketch_id = thing[2];
 	goToSketch(username, sketch_id);
 });
+
+fetch("/all-projects")
+	.then(res => res.json())
+	.then(json_string => JSON.parse(json_string))
+	.then(json => updated_cached_project(json))
+	.catch(console.error);
+
+/**
+ * Update the list of cached projects on the home page.
+ * 
+ * @param {{username: string, sketch_id: string, name: string}[]} sketches All cached projects.
+ */
+function updated_cached_project(sketches) {
+	while (cached_sketches_parent.hasChildNodes()) {
+		cached_sketches_parent.firstChild?.remove();
+	}
+
+	for (const sketch of sketches) {
+		const {username, sketch_id, name} = sketch;
+
+		const name_element = document.createElement("h3");
+		name_element.classList.add("name");
+		name_element.textContent = sketch.name;
+
+		const author_element = document.createElement("a");
+		author_element.classList.add("author");
+		author_element.href = getAuthorUrl(username);
+		author_element.textContent = sketch.username;
+
+		const by_element = document.createElement("p");
+		by_element.textContent = "by: ";
+		by_element.appendChild(author_element);
+		
+		const id_element = document.createElement("p");
+		id_element.classList.add("id");
+		id_element.textContent = sketch.sketch_id;
+
+		const link_element = document.createElement("a");
+		link_element.textContent = "View Locally";
+		link_element.href = getSketchLocalUrl(username, sketch_id);
+
+		const p5_link_element = document.createElement("a");
+		p5_link_element.textContent = "View at editor.p5js.org";
+		p5_link_element.href = getSketchUrl(username, sketch_id);
+
+		const info_container = document.createElement("div");
+		info_container.classList.add("info");
+		info_container.append(name_element, by_element, id_element);
+
+		const link_container = document.createElement("div");
+		link_container.classList.add("links");
+		link_container.append(link_element, p5_link_element);
+
+		const parent_element = document.createElement("div");
+		parent_element.classList.add("cached-sketch");
+		parent_element.append(info_container, link_container);
+
+		cached_sketches_parent.appendChild(parent_element);
+	}
+}
