@@ -8,9 +8,11 @@ This project is a local client which can download and cache any project hosted o
 
 ## Features
 
-* Download any project hosted on `editor.p5js.org`
+* Download any project hosted on `editor.p5js.org`.
 * Local caching of projects for when your device is offline.
-* Pure fullscreen mode
+* Pure fullscreen mode with blacked-out background.
+* Canvas scaling so the sketch is always as-big as it can be.
+* View the sketch and author on `editor.p5js.org`.
 
 ## Notes
 
