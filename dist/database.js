@@ -49,7 +49,12 @@ export async function get_file(username, sketch_id, file_path) {
     if (result === undefined)
         return undefined;
     const content = result.file_contents;
-    return content;
+    // inject CSS if a `.html` file
+    if (!file_path.endsWith(".html"))
+        return content;
+    const search = "</head>";
+    const replacement = `<link rel="stylesheet" href="/injected.css"><script src="/injected.js" defer></script></head>`;
+    return content.replace(search, replacement);
 }
 export async function get_all_projects() {
     return await db.all("SELECT * FROM Sketches;");

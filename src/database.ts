@@ -67,7 +67,19 @@ export async function get_file(username: string, sketch_id: string, file_path: s
 	if (result === undefined) return undefined;
 
 	const content = result.file_contents;
-	return content;
+
+	// inject CSS if a `.html` file
+	if (!file_path.endsWith(".html")) return content;
+	
+	const search_head = "</head>";
+	const replacement_head = `<link rel="stylesheet" href="/injected.css"></head>`;
+
+	const search_body = "</body>"
+	const replacement_body = `<script src="/injected.js"></script>`;
+
+	return content
+		.replace(search_head, replacement_head)
+		.replace(search_body, replacement_body);
 }
 
 export async function get_all_projects(): Promise<SketchRow[]> {
