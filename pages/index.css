@@ -4,6 +4,8 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
+
+	scrollbar-width: thin;
 }
 
 :root {
@@ -56,6 +58,10 @@ p, a, input, button {
 
 a {
 	color: var(--link-dark);
+}
+
+input:focus-visible {
+	outline: 2px solid var(--accent);
 }
 
 input, button {
