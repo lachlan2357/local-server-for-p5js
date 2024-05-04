@@ -16,6 +16,10 @@ This project is a local client which can download and cache any project hosted o
 
 This project functions no differently to how the `p5.js` fullscreen view works in terms of requesting files. Once cached, each local request for a project will not fetch from `editor.p5.js` unless the cache is first deleted. Because of this, it places less strain on the `editor.p5.js` server than loading the fullscreen view.
 
+## Disclaimer
+
+This project is no run by, connected to, authorised by or affiliated with `p5js` or the Processing Foundation in any way.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](./LICENSE) for more information.
