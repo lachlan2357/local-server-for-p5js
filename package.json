@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "type": "module",
-  "author": "Lachlan Rehder <lachlan2357@outlook.com>",
+  "author": "Lachlan Rehder <lachlan.rehder@outlook.com>",
   "license": "MIT",
   "scripts": {
     "build": "yarn tsc",
