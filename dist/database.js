@@ -29,11 +29,19 @@ export async function send_file(req, res) {
     if (username === undefined || sketch_id === undefined)
         res.status(404).send("Could not fetch the file.");
     await ensure_exists(username, sketch_id);
-    const file_contents = await get_file(username, sketch_id, file_path ?? "index.html");
+    const file_path_filled = file_path ?? "index.html";
+    const file_contents = await get_file(username, sketch_id, file_path_filled);
+    let mime_type = "text/text";
+    if (file_path_filled.endsWith(".html"))
+        mime_type = "html";
+    else if (file_path_filled.endsWith("css"))
+        mime_type = "css";
+    else if (file_path_filled.endsWith("js"))
+        mime_type = "javascript";
     if (file_contents === undefined)
         res.status(404).send("File has not been cached.");
     else
-        res.send(file_contents);
+        res.contentType(mime_type).send(file_contents);
 }
 export async function get_file(username, sketch_id, file_path) {
     const result = await db.get("SELECT * FROM Files WHERE username = ? AND sketch_id = ? AND file_name = ?;", username, sketch_id, file_path);
@@ -41,6 +49,9 @@ export async function get_file(username, sketch_id, file_path) {
         return undefined;
     const content = result.file_contents;
     return content;
+}
+export async function get_all_projects() {
+    return await db.all("SELECT * FROM Sketches;");
 }
 export async function ensure_exists(username, sketch_id) {
     const result = await db.get("SELECT * FROM Sketches WHERE username = ? AND sketch_id = ?;", username, sketch_id);

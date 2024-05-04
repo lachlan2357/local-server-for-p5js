@@ -3,6 +3,7 @@ import { open } from "sqlite";
 import { Nullable } from "./utils.js";
 import { P5APIResponse, P5File, get_sketch } from "./api.js";
 import { Request, Response } from "express";
+import path from "path";
 
 const db = await open({ driver: sqlite3.Database, filename: "./database.db" });
 db.on("error", console.error);
@@ -49,10 +50,16 @@ export async function send_file(req: Request, res: Response) {
 	if (username === undefined || sketch_id === undefined) res.status(404).send("Could not fetch the file.");
 
 	await ensure_exists(username, sketch_id);
-	const file_contents = await get_file(username, sketch_id, file_path ?? "index.html");
+	const file_path_filled = file_path ?? "index.html";
+	const file_contents = await get_file(username, sketch_id, file_path_filled);
+	
+	let mime_type = "text/text";
+	if (file_path_filled.endsWith(".html")) mime_type = "html";
+	else if (file_path_filled.endsWith("css")) mime_type = "css";
+	else if (file_path_filled.endsWith("js")) mime_type = "javascript";
 	
 	if (file_contents === undefined) res.status(404).send("File has not been cached.");
-	else res.send(file_contents);
+	else res.contentType(mime_type).send(file_contents);
 }
 
 export async function get_file(username: string, sketch_id: string, file_path: string) {
@@ -61,6 +68,10 @@ export async function get_file(username: string, sketch_id: string, file_path: s
 
 	const content = result.file_contents;
 	return content;
+}
+
+export async function get_all_projects(): Promise<SketchRow[]> {
+	return await db.all("SELECT * FROM Sketches;");
 }
 
 export async function ensure_exists(username: string, sketch_id: string) {
